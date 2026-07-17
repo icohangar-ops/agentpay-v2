@@ -1,0 +1,105 @@
+// AgentPay Prisma schema — Treasury Agent persistence layer
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Persistent treasury configuration per agent
+model TreasuryConfig {
+  id              String   @id @default(cuid())
+  agentId         String   @unique
+  treasuryName    String
+  // Algorithm prefix: 01 = ed25519, 02/03 = secp256k1
+  algorithm       String   @default("secp256k1")
+  publicKey       String
+  accountHash     String
+  mainPurse       String?
+  // Budgets and limits (in CSPR)
+  maxPerPaymentCspr   Float    @default(10)
+  hourlyBudgetCspr    Float    @default(50)
+  dailyBudgetCspr     Float    @default(200)
+  // Treasury policy: which x402 services are pre-approved, which require LLM review
+  policyJson      String   @default("{}")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Every treasury decision — LLM-suggested or policy-auto — is persisted for audit
+model TreasuryDecision {
+  id              String   @id @default(cuid())
+  agentId         String
+  // Decision context
+  serviceId       String
+  serviceName     String
+  requestUrl      String
+  // Original x402 challenge
+  paymentRequiredJson String  // raw WWW-Authenticate: 402 challenge
+  amountRequiredMotes  BigInt  // 1 CSPR = 1e9 motes
+  // LLM output
+  decision        String   // APPROVE | DENY | DEFER | COUNTER
+  approvedAmountMotes  BigInt?
+  rationale       String
+  // Policy override: AUTO_APPROVE / AUTO_DENY / LLM_REVIEW / BLOCKED
+  decisionSource  String
+  // Execution
+  executed        Boolean  @default(false)
+  deployHash      String?
+  executionError  String?
+  // Timing
+  createdAt       DateTime @default(now())
+  executedAt      DateTime?
+
+  @@index([agentId, createdAt])
+  @@index([serviceId])
+}
+
+// Spend tracking for budget enforcement
+model TreasurySpend {
+  id              String   @id @default(cuid())
+  agentId         String
+  windowStart     DateTime // hour / day window start
+  windowKind      String   // "HOURLY" | "DAILY"
+  amountMotes     BigInt
+  paymentCount    Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([agentId, windowKind, windowStart])
+}
+
+// Registered x402 services the treasury can pay
+model X402Service {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  name            String
+  baseUrl         String
+  defaultPriceMotes BigInt?
+  // trust level: 0-100, set by LLM or operator
+  trustScore      Int      @default(50)
+  // policy: AUTO_APPROVE_UNDER / LLM_REVIEW / ALWAYS_REVIEW / BLOCKED
+  policy          String   @default("LLM_REVIEW")
+  lastUsedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Agents that this treasury pays on behalf of
+model AgentIdentity {
+  id              String   @id @default(cuid())
+  agentId         String   @unique
+  name            String
+  description     String?
+  // Per-agent budget override
+  maxPerPaymentCspr Float?
+  hourlyBudgetCspr  Float?
+  dailyBudgetCspr   Float?
+  // Whitelisted services (comma-separated serviceIds); empty = all allowed
+  allowedServices String   @default("")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

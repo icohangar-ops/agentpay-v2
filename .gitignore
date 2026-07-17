@@ -1,0 +1,43 @@
+# AgentPay — local build artifacts (regenerated)
+db/
+db/dev.db
+db/dev.db-journal
+
+# Node / Bun
+node_modules/
+bun.lock
+.bun/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Frame temp files (from demo video rendering)
+scripts/_frames/
+scripts/_arch_diagram.html
+scripts/_demo_render.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Prisma generated client (committed by default; uncomment to ignore)
+# generated/prisma-client/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

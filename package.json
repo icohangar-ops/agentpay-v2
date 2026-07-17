@@ -1,0 +1,29 @@
+{
+  "name": "agentpay",
+  "version": "0.1.0",
+  "description": "x402 protocol payment layer for AI agents on Casper blockchain — Treasury Agent with GLM-4.6",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "demo": "bun run scripts/demo-treasury.ts",
+    "check-account": "bun run scripts/check-account.ts",
+    "db:push": "DATABASE_URL=\"file:./db/dev.db\" bunx prisma db push",
+    "db:studio": "DATABASE_URL=\"file:./db/dev.db\" bunx prisma studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.5.0",
+    "@noble/curves": "^1.6.0",
+    "@prisma/client": "^5.22.0",
+    "z-ai-web-dev-sdk": "^0.0.18"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.13",
+    "@types/node": "^22.9.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}
