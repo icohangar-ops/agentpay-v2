@@ -1,11 +1,11 @@
 #!/bin/bash
-# Push AgentPay to 2 GitHub repos + 1 Codeberg repo (3 remotes total).
+# Push AgentPay v2 to 2 GitHub repos + 1 Codeberg repo (3 remotes total).
 #
 # USAGE:
 #   1. Create 3 empty repos (NO README, NO .gitignore, NO license — must be empty):
-#        - GitHub repo #1 (e.g. your personal copy):  https://github.com/<you>/agentpay
-#        - GitHub repo #2 (e.g. hackathon team copy): https://github.com/<team>/agentpay-buidl
-#        - Codeberg repo:                              https://codeberg.org/<you>/agentpay
+#        - GitHub repo #1 (e.g. your personal copy):  https://github.com/<you>/agentpay-v2
+#        - GitHub repo #2 (e.g. hackathon team copy): https://github.com/<team>/agentpay-v2-buidl
+#        - Codeberg repo:                              https://codeberg.org/<you>/agentpay-v2
 #   2. Set the URLs below (or pass them as env vars).
 #   3. Run:  bash scripts/push-remotes.sh
 #
@@ -21,22 +21,22 @@
 
 set -euo pipefail
 
-REPO_DIR="/home/z/my-project/agentpay"
+REPO_DIR="/home/z/my-project/agentpay-v2"
 cd "$REPO_DIR"
 
 # ─── Remote URLs ─────────────────────────────────────────────────────
 # Override via env vars: GITHUB_1_URL, GITHUB_2_URL, CODEBERG_URL
 
 if [ -n "${GITHUB_1_URL:-}" ]; then GH1="$GITHUB_1_URL"; else
-  read -r -p "GitHub repo #1 URL (e.g. git@github.com:you/agentpay.git): " GH1
+  read -r -p "GitHub repo #1 URL (e.g. git@github.com:you/agentpay-v2.git): " GH1
 fi
 
 if [ -n "${GITHUB_2_URL:-}" ]; then GH2="$GITHUB_2_URL"; else
-  read -r -p "GitHub repo #2 URL (e.g. git@github.com:hackathon-team/agentpay-buidl.git): " GH2
+  read -r -p "GitHub repo #2 URL (e.g. git@github.com:hackathon-team/agentpay-v2-buidl.git): " GH2
 fi
 
 if [ -n "${CODEBERG_URL:-}" ]; then CB="$CODEBERG_URL"; else
-  read -r -p "Codeberg repo URL (e.g. git@codeberg.org:you/agentpay.git): " CB
+  read -r -p "Codeberg repo URL (e.g. git@codeberg.org:you/agentpay-v2.git): " CB
 fi
 
 echo

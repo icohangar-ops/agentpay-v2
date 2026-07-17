@@ -1,5 +1,5 @@
 ╔══════════════════════════════════════════════════════════════════╗
-║  AgentPay Treasury Agent — Live Demo                              ║
+║  AgentPay v2 — Live Demo                                          ║
 ║  x402 protocol + Casper testnet + GLM-4.6 decision engine         ║
 ╚══════════════════════════════════════════════════════════════════╝
 Seeding demo data...
@@ -11,7 +11,7 @@ Public Key:    02028689d1185c208db3f891098bb83ab3ddd79ac6512289d25911df1ff912fcf
 Account Hash:  account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e1475fc78e04
 Main Purse:    uref-f00cce9b099ffcd9ec321873a98cab8f19bdf9e40b9c79bb86690a8edc09b902-007
 Balance:       5000.0000 CSPR (5000000000000 motes)
-State root:    fc64385d6de4279a...
+State root:    b4c94ca1053e4298...
 
 ──────────────────────────────────────────────────────────────────
 SCENARIO: Small payment to a high-trust service (should auto-approve)
@@ -22,7 +22,7 @@ Recipient:  account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e14
 
 Calling Treasury Agent.evaluate()...
 
-DECISION (1070ms)
+DECISION (1053ms)
 ==========
 Verdict:           APPROVE
 Source:            AUTO_APPROVE_POLICY
@@ -32,7 +32,7 @@ Rationale:         Service "Single web search query" has trust score 85 and amou
 CONSTRUCTING ON-CHAIN PAYMENT DEPLOY
 =====================================
 Mode:           DRY_RUN (no private key — not submitted)
-Deploy hash:    9a218aa5ddefd75445e2f73b8c81c37a4ae16b42472dbf8389c5ee6782238c34
+Deploy hash:    aa6bab9912c5b70de35a863e6c6b2cdda88402d5f138b214cc66cdf41ef1d9cb
 Body hash:      38396b46a960c98ca0f7eabb956aa2ab6e32d62bc83c6c2d97477b72d0eeef57
 From (pubkey):  02028689d1185c20...
 Source purse:   uref-f00cce9b099ffcd9ec321873a98cab8f19bdf9e40b9c79bb86690a8edc09b902-007
@@ -40,7 +40,7 @@ Target purse:   uref-f00cce9b099ffcd9ec321873a98cab8f19bdf9e40b9c79bb86690a8edc0
 Amount:         0.050000 CSPR
 Chain:          casper-test
 TTL:            30m
-Timestamp:      2026-07-17T23:11:47.307Z
+Timestamp:      2026-07-17T23:33:42.297Z
 Approvals:      0 (unsigned)
 
 Note:           Private key not set — deploy constructed with valid hashes but not submitted.
@@ -48,12 +48,12 @@ Note:           Private key not set — deploy constructed with valid hashes but
 X402 PAYMENT PROOF:
 {
   "network": "casper-test",
-  "deploy_hash": "9a218aa5ddefd75445e2f73b8c81c37a4ae16b42472dbf8389c5ee6782238c34",
+  "deploy_hash": "aa6bab9912c5b70de35a863e6c6b2cdda88402d5f138b214cc66cdf41ef1d9cb",
   "from": "02028689d1185c208db3f891098bb83ab3ddd79ac6512289d25911df1ff912fcf0b9",
   "to": "account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e1475fc78e04",
   "amount": "50000000",
   "asset": "cspr",
-  "timestamp": "2026-07-17T23:11:47.312Z"
+  "timestamp": "2026-07-17T23:33:42.301Z"
 }
 
 ──────────────────────────────────────────────────────────────────
@@ -65,21 +65,29 @@ Recipient:  account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e14
 
 Calling Treasury Agent.evaluate()...
 
-DECISION (2422ms)
+DECISION (4951ms)
 ==========
 Verdict:           APPROVE
 Source:            LLM_REVIEW
 Approved amount:   0.500000 CSPR
-Rationale:         The request is within all budget limits, the service has a good trust score, and the task context indicates high mission value for providing in-depth analysis.
-Next step:         Proceed with the GPT-4 completion request and monitor for quality output.
+Rationale:         Payment is within agent's budget limits and treasury solvency. Service has good trust score and request is for a high-value research task.
+Next step:         Proceed with the GPT-4 completion request.
 
 LLM raw response:
-{"verdict": "APPROVE", "approved_amount_motes": "500000000", "counter_amount_motes": null, "rationale": "The request is within all budget limits, the service has a good trust score, and the task context indicates high mission value for providing in-depth analysis.", "next_step": "Proceed with the GPT-4 completion request and monitor for quality output."}
+```json
+{
+  "verdict": "APPROVE",
+  "approved_amount_motes": "500000000",
+  "counter_amount_motes": null,
+  "rationale": "Payment is within agent's budget limits and treasury solvency. Service has good trust score and request is for a high-value research task.",
+  "next_step": "Proceed with the GPT-4 completion request."
+}
+```
 
 CONSTRUCTING ON-CHAIN PAYMENT DEPLOY
 =====================================
 Mode:           DRY_RUN (no private key — not submitted)
-Deploy hash:    bc07bab84db2feaa8fe7b0a0dc01839d4feb99e84f729b0f2731bef094436800
+Deploy hash:    ec34ccb3d8ee03f8333fda721bafc29eb429169520e488680fa92463bb3336fd
 Body hash:      ee5d22c91ee7b06a08b533ac0c85945c7e0613b39dd8c7dbcc0c55875c9510cb
 From (pubkey):  02028689d1185c20...
 Source purse:   uref-f00cce9b099ffcd9ec321873a98cab8f19bdf9e40b9c79bb86690a8edc09b902-007
@@ -87,7 +95,7 @@ Target purse:   uref-f00cce9b099ffcd9ec321873a98cab8f19bdf9e40b9c79bb86690a8edc0
 Amount:         0.500000 CSPR
 Chain:          casper-test
 TTL:            30m
-Timestamp:      2026-07-17T23:11:50.814Z
+Timestamp:      2026-07-17T23:33:48.301Z
 Approvals:      0 (unsigned)
 
 Note:           Private key not set — deploy constructed with valid hashes but not submitted.
@@ -95,12 +103,12 @@ Note:           Private key not set — deploy constructed with valid hashes but
 X402 PAYMENT PROOF:
 {
   "network": "casper-test",
-  "deploy_hash": "bc07bab84db2feaa8fe7b0a0dc01839d4feb99e84f729b0f2731bef094436800",
+  "deploy_hash": "ec34ccb3d8ee03f8333fda721bafc29eb429169520e488680fa92463bb3336fd",
   "from": "02028689d1185c208db3f891098bb83ab3ddd79ac6512289d25911df1ff912fcf0b9",
   "to": "account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e1475fc78e04",
   "amount": "500000000",
   "asset": "cspr",
-  "timestamp": "2026-07-17T23:11:50.815Z"
+  "timestamp": "2026-07-17T23:33:48.303Z"
 }
 
 ──────────────────────────────────────────────────────────────────
@@ -112,22 +120,25 @@ Recipient:  account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e14
 
 Calling Treasury Agent.evaluate()...
 
-DECISION (2290ms)
+DECISION (2892ms)
 ==========
-Verdict:           DENY
+Verdict:           COUNTER
 Source:            LLM_REVIEW
 Approved amount:   0.000000 CSPR
-Rationale:         Low trust service (25/100) with repeated recent denial history for similar requests.
-Next step:         Consider alternative scraping services with higher trust scores.
+Counter amount:    0.050000 CSPR
+Rationale:         Low trust score for the service suggests potential risk; counter with a lower amount to minimize exposure while still allowing the request to proceed.
+Next step:         Consider using a higher-trust scraping service if available for better reliability.
 
 LLM raw response:
+```json
 {
-  "verdict": "DENY",
+  "verdict": "COUNTER",
   "approved_amount_motes": "0",
-  "counter_amount_motes": null,
-  "rationale": "Low trust service (25/100) with repeated recent denial history for similar requests.",
-  "next_step": "Consider alternative scraping services with higher trust scores."
+  "counter_amount_motes": "50000000",
+  "rationale": "Low trust score for the service suggests potential risk; counter with a lower amount to minimize exposure while still allowing the request to proceed.",
+  "next_step": "Consider using a higher-trust scraping service if available for better reliability."
 }
+```
 
 ──────────────────────────────────────────────────────────────────
 SCENARIO: Payment to a blocked service (should auto-deny)
@@ -138,7 +149,7 @@ Recipient:  account-hash-4373087ef51351ba91c7642907eab2c2e9bfe7d460eb1b4c2fe7e14
 
 Calling Treasury Agent.evaluate()...
 
-DECISION (1058ms)
+DECISION (1044ms)
 ==========
 Verdict:           DENY
 Source:            AUTO_DENY_BLOCKED
@@ -149,25 +160,9 @@ Next step:         Remove the service from the block list to allow payments.
 ══════════════════════════════════════════════════════════════════
 AUDIT LOG (all decisions this session, persisted to SQLite)
 ══════════════════════════════════════════════════════════════════
-  [2026-07-17T22:06:15.793Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
-  [2026-07-17T22:06:18.549Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
-  [2026-07-17T22:06:21.167Z] COUNTER  LLM_REVIEW             Generic scraper call                     0.1000 CSPR
-  [2026-07-17T22:06:22.289Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
-  [2026-07-17T22:59:19.867Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
-  [2026-07-17T22:59:22.491Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
-  [2026-07-17T22:59:25.065Z] DENY     LLM_REVIEW             Generic scraper call                     0.1000 CSPR
-  [2026-07-17T22:59:26.114Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
-  [2026-07-17T23:05:59.375Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
-  [2026-07-17T23:06:04.059Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
-  [2026-07-17T23:06:08.103Z] DENY     LLM_REVIEW             Generic scraper call                     0.1000 CSPR
-  [2026-07-17T23:06:09.181Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
-  [2026-07-17T23:09:22.419Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
-  [2026-07-17T23:09:26.594Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
-  [2026-07-17T23:09:30.532Z] DENY     LLM_REVIEW             Generic scraper call                     0.1000 CSPR
-  [2026-07-17T23:09:31.656Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
-  [2026-07-17T23:11:46.252Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
-  [2026-07-17T23:11:49.733Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
-  [2026-07-17T23:11:53.106Z] DENY     LLM_REVIEW             Generic scraper call                     0.1000 CSPR
-  [2026-07-17T23:11:54.164Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
+  [2026-07-17T23:33:41.254Z] APPROVE  AUTO_APPROVE_POLICY    Single web search query                  0.0500 CSPR
+  [2026-07-17T23:33:47.252Z] APPROVE  LLM_REVIEW             GPT-4 completion request (1k tokens)     0.5000 CSPR
+  [2026-07-17T23:33:51.194Z] COUNTER  LLM_REVIEW             Generic scraper call                     0.1000 CSPR
+  [2026-07-17T23:33:52.239Z] DENY     AUTO_DENY_BLOCKED      Feed fetch                               0.0100 CSPR
 
 Demo complete.

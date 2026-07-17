@@ -299,7 +299,7 @@ async function runScenario(scenario: typeof DEMO_SCENARIOS[number], agent: Treas
 
 async function main() {
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║  AgentPay Treasury Agent — Live Demo                              ║');
+  console.log('║  AgentPay v2 — Live Demo                                          ║');
   console.log('║  x402 protocol + Casper testnet + GLM-4.6 decision engine         ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 

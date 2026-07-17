@@ -300,7 +300,7 @@ export class TreasuryAgent {
   }
 
   private buildSystemPrompt(): string {
-    return `You are the Treasury Agent for AgentPay, an x402 payment layer on the Casper blockchain.
+    return `You are the Treasury Agent for AgentPay v2, an x402 payment layer on the Casper blockchain.
 
 Your job: decide whether to APPROVE, DENY, DEFER, or COUNTER an AI agent's request to spend treasury funds on an x402-protected API call.
 

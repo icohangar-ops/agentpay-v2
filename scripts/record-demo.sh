@@ -1,33 +1,33 @@
 #!/bin/bash
-# Record the AgentPay demo as an asciinema cast, then convert to GIF + MP4.
+# Record the AgentPay v2 demo as an asciinema cast, then convert to GIF + MP4.
 #
 # Output:
-#   /home/z/my-project/download/agentpay-demo.cast
-#   /home/z/my-project/download/agentpay-demo.gif
-#   /home/z/my-project/download/agentpay-demo.mp4
+#   /home/z/my-project/download/agentpay-v2-demo.cast
+#   /home/z/my-project/download/agentpay-v2-demo.gif
+#   /home/z/my-project/download/agentpay-v2-demo.mp4
 
 set -e
 
 OUT_DIR="/home/z/my-project/download"
-CAST="$OUT_DIR/agentpay-demo.cast"
-GIF="$OUT_DIR/agentpay-demo.gif"
-MP4="$OUT_DIR/agentpay-demo.mp4"
-DEMO_SCRIPT="/home/z/my-project/agentpay/scripts/demo-treasury.ts"
+CAST="$OUT_DIR/agentpay-v2-demo.cast"
+GIF="$OUT_DIR/agentpay-v2-demo.gif"
+MP4="$OUT_DIR/agentpay-v2-demo.mp4"
+DEMO_SCRIPT="/home/z/my-project/agentpay-v2/scripts/demo-treasury.ts"
 
 mkdir -p "$OUT_DIR"
 
 # 1. Clear DB so the demo starts fresh (otherwise audit log shows old runs)
 echo "Resetting audit log..."
-rm -f /home/z/my-project/agentpay/db/dev.db
-cd /home/z/my-project/agentpay
+rm -f /home/z/my-project/agentpay-v2/prisma/db/dev.db
+cd /home/z/my-project/agentpay-v2
 bunx prisma db push --skip-generate 2>&1 | tail -3
 
 # 2. Record
 echo "Recording to $CAST..."
 asciinema rec \
-  --command="bash -c 'echo \"╔══════════════════════════════════════════════════════════════════╗\"; echo \"║  AgentPay — Live Demo Recording                                    ║\"; echo \"║  x402 + Casper testnet + GLM-4.6 Treasury Agent                   ║\"; echo \"╚══════════════════════════════════════════════════════════════════╝\"; sleep 2; cd /home/z/my-project/agentpay && bun run scripts/demo-treasury.ts; echo; echo \"Demo recording complete.\"; sleep 2'" \
+  --command="bash -c 'echo \"╔══════════════════════════════════════════════════════════════════╗\"; echo \"║  AgentPay v2 — Live Demo Recording                                ║\"; echo \"║  x402 + Casper testnet + GLM-4.6 Treasury Agent                   ║\"; echo \"╚══════════════════════════════════════════════════════════════════╝\"; sleep 2; cd /home/z/my-project/agentpay-v2 && bun run scripts/demo-treasury.ts; echo; echo \"Demo recording complete.\"; sleep 2'" \
   --idle-time-limit=2 \
-  --title="AgentPay Treasury Agent — Live Demo" \
+  --title="AgentPay v2 Treasury Agent — Live Demo" \
   "$CAST"
 
 # 3. Convert to GIF (using agg if available, else asciinema2gif)
@@ -52,4 +52,4 @@ fi
 
 echo
 echo "Done."
-ls -la "$OUT_DIR"/agentpay-demo.* 2>/dev/null || true
+ls -la "$OUT_DIR"/agentpay-v2-demo.* 2>/dev/null || true

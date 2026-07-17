@@ -1,4 +1,4 @@
-// AgentPay Prisma schema — Treasury Agent persistence layer
+// AgentPay v2 Prisma schema — Treasury Agent persistence layer
 generator client {
   provider = "prisma-client-js"
 }

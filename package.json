@@ -1,5 +1,5 @@
 {
-  "name": "agentpay",
+  "name": "agentpay-v2",
   "version": "0.1.0",
   "description": "x402 protocol payment layer for AI agents on Casper blockchain — Treasury Agent with GLM-4.6",
   "type": "module",

@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-OUTPUT_PATH = "/home/z/my-project/download/agentpay-architecture.png"
-HTML_PATH = "/home/z/my-project/agentpay/scripts/_arch_diagram.html"
+OUTPUT_PATH = "/home/z/my-project/download/agentpay-v2-architecture.png"
+HTML_PATH = "/home/z/my-project/agentpay-v2/scripts/_arch_diagram.html"
 
 HTML = r"""
 <!DOCTYPE html>
@@ -189,7 +189,7 @@ HTML = r"""
 <div id="root">
 
   <div class="hero">
-    <h1>AgentPay — Treasury Agent Architecture</h1>
+    <h1>AgentPay v2 — Treasury Agent Architecture</h1>
     <div class="sub">x402 protocol + GLM-4.6 LLM + Casper blockchain</div>
     <div class="tag">BUIDL @ DoraHacks · casper-test</div>
   </div>

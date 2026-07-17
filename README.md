@@ -1,4 +1,4 @@
-# AgentPay
+# AgentPay v2
 
 **An x402-protocol payment layer for AI agents on the Casper blockchain, with a GLM-4.6-powered Treasury Agent that makes on-chain spending decisions.**
 
@@ -8,7 +8,7 @@
 
 ## What it does
 
-AI agents increasingly need to pay for API calls (web search, LLM completions, image generation, data scraping). Today this requires either (a) pre-funded centralized accounts at every vendor, or (b) humans in the loop for every purchase. **AgentPay** fixes this with a single on-chain treasury that an LLM agent manages autonomously.
+AI agents increasingly need to pay for API calls (web search, LLM completions, image generation, data scraping). Today this requires either (a) pre-funded centralized accounts at every vendor, or (b) humans in the loop for every purchase. **AgentPay v2** fixes this with a single on-chain treasury that an LLM agent manages autonomously.
 
 The flow:
 
@@ -22,9 +22,9 @@ The flow:
 
 ## Architecture
 
-![Architecture diagram](./download/agentpay-architecture.png)
+![Architecture diagram](./demo/agentpay-v2-architecture.png)
 
-The diagram lives at `download/agentpay-architecture.png` (relative to project root). Key components:
+The diagram lives in `demo/agentpay-v2-architecture.png`. Key components:
 
 | Layer | File | Responsibility |
 |---|---|---|
@@ -59,14 +59,15 @@ For each `APPROVE`, the demo also constructs a real Casper deploy — bincode-se
 
 ### Demo artifacts
 
-All demo outputs live in `download/`:
+All demo outputs live in `demo/`:
 
 | File | What |
 |---|---|
-| `agentpay-architecture.png` | System architecture diagram (4-phase flow) |
-| `agentpay-demo.png` | Syntax-highlighted transcript of the live demo |
-| `agentpay-demo.cast` | Asciinema recording (replay with `asciinema play download/agentpay-demo.cast`) |
-| `agentpay-demo-transcript.txt` | Raw text output of the demo |
+| `agentpay-v2-architecture.png` | System architecture diagram (4-phase flow) |
+| `agentpay-v2-demo.png` | Syntax-highlighted transcript of the live demo |
+| `agentpay-v2-demo.cast` | Asciinema recording (replay with `asciinema play demo/agentpay-v2-demo.cast`) |
+| `agentpay-v2-demo.mp4` | 12-second MP4 video rendered from the cast |
+| `agentpay-v2-demo-transcript.txt` | Raw text output of the demo |
 
 ## Stack
 
@@ -80,7 +81,7 @@ All demo outputs live in `download/`:
 ## Quick start
 
 ```bash
-cd /home/z/my-project/agentpay
+cd /home/z/my-project/agentpay-v2
 
 # 1. Install deps
 bun install
@@ -170,7 +171,7 @@ Run with `bun test`.
 ## What's in the repo
 
 ```
-agentpay/
+agentpay-v2/
 ├── prisma/
 │   └── schema.prisma              # 5-model schema (TreasuryConfig, TreasuryDecision, …)
 ├── src/

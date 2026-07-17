@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Render the AgentPay demo transcript as a polished PNG image.
+"""Render the AgentPay v2 demo transcript as a polished PNG image.
 
 Takes the raw text output of `bun run scripts/demo-treasury.ts` and
 renders it as a terminal-style screenshot with proper monospace styling,
 syntax highlighting of key fields, and section dividers.
 
-Output: /home/z/my-project/download/agentpay-demo.png
+Output: /home/z/my-project/download/agentpay-v2-demo.png
 """
 
 import asyncio
@@ -15,9 +15,9 @@ import re
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-TRANSCRIPT_PATH = "/home/z/my-project/download/agentpay-demo-transcript.txt"
-OUTPUT_PATH = "/home/z/my-project/download/agentpay-demo.png"
-HTML_PATH = "/home/z/my-project/agentpay/scripts/_demo_render.html"
+TRANSCRIPT_PATH = "/home/z/my-project/download/agentpay-v2-demo-transcript.txt"
+OUTPUT_PATH = "/home/z/my-project/download/agentpay-v2-demo.png"
+HTML_PATH = "/home/z/my-project/agentpay-v2/scripts/_demo_render.html"
 
 def colorize(line: str) -> str:
     """Apply minimal syntax highlighting to a single terminal line."""
@@ -179,7 +179,7 @@ def build_html(transcript: str) -> str:
     <span class="dot r"></span>
     <span class="dot y"></span>
     <span class="dot g"></span>
-    <span class="title">agentpay@treasury: bun run scripts/demo-treasury.ts</span>
+    <span class="title">agentpay-v2@treasury: bun run scripts/demo-treasury.ts</span>
     <span class="meta">casper-test · GLM-4.6 · 2026-07-17</span>
   </div>
   <pre>{rendered}</pre>

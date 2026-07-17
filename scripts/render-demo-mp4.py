@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the AgentPay asciinema cast as an MP4 video using pyte + ffmpeg.
+"""Render the AgentPay v2 asciinema cast as an MP4 video using pyte + ffmpeg.
 
 Pipeline:
   1. Parse the .cast file (JSONL: header line + [timestamp, "o", text] events)
@@ -7,7 +7,7 @@ Pipeline:
   3. At sampled intervals (15 fps), render the terminal screen as a PNG frame
   4. Pipe the PNG sequence to ffmpeg to produce the final MP4
 
-Output: /home/z/my-project/download/agentpay-demo.mp4
+Output: /home/z/my-project/download/agentpay-v2-demo.mp4
 """
 
 import asyncio
@@ -23,9 +23,9 @@ from pathlib import Path
 import pyte
 from playwright.async_api import async_playwright
 
-CAST_PATH = "/home/z/my-project/download/agentpay-demo.cast"
-OUTPUT_PATH = "/home/z/my-project/download/agentpay-demo.mp4"
-FRAMES_DIR = "/home/z/my-project/agentpay/scripts/_frames"
+CAST_PATH = "/home/z/my-project/download/agentpay-v2-demo.cast"
+OUTPUT_PATH = "/home/z/my-project/download/agentpay-v2-demo.mp4"
+FRAMES_DIR = "/home/z/my-project/agentpay-v2/scripts/_frames"
 
 # Video params
 FPS = 15
@@ -220,7 +220,7 @@ def build_full_html(body_html: str, terminal_width_px: int, terminal_height_px: 
     <span class="dot r"></span>
     <span class="dot y"></span>
     <span class="dot g"></span>
-    <span class="title">agentpay@treasury: bun run scripts/demo-treasury.ts</span>
+    <span class="title">agentpay-v2@treasury: bun run scripts/demo-treasury.ts</span>
     <span class="meta">casper-test · GLM-4.6</span>
   </div>
   <div class="terminal">
