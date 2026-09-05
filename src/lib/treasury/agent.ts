@@ -22,6 +22,7 @@ import { rpc } from '../casper/rpc';
 import { computeAccountHash } from '../casper/account-hash';
 import { env } from '../env';
 import { motesToCspr, csprToMotes, MOTES_PER_CSPR } from '../utils/units';
+import { tracePrismLLM } from '../observability/prism';
 import type { X402Challenge, X402PaymentProof } from '../x402/client';
 import { buildTransferDeploy, verifyDeployHash, type Deploy, type DeployJson } from '../casper/deploy';
 import type { KeyPair } from '../casper/signing';
@@ -274,6 +275,7 @@ export class TreasuryAgent {
   ): Promise<TreasuryDecision> {
     const systemPrompt = this.buildSystemPrompt();
     const userPrompt = this.buildUserPrompt(req, ctx, amountRequired);
+    const startedAt = Date.now();
 
     let llmResponseText: string;
     try {
@@ -286,7 +288,44 @@ export class TreasuryAgent {
         thinking: { type: 'disabled' },
       });
       llmResponseText = completion.choices[0]?.message?.content ?? '';
+      await tracePrismLLM({
+        traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
+        agentId: req.agentId,
+        agentName: 'Treasury Agent',
+        model: env.glm.model,
+        inputMessages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        output: llmResponseText,
+        latencyMs: Date.now() - startedAt,
+        metadata: {
+          source: 'agentpay-v2',
+          serviceId: req.serviceId,
+          serviceName: req.serviceName,
+          verdict_source: 'LLM_REVIEW',
+        },
+      }).catch(() => undefined);
     } catch (e) {
+      await tracePrismLLM({
+        traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
+        agentId: req.agentId,
+        agentName: 'Treasury Agent',
+        model: env.glm.model,
+        inputMessages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        output: `LLM call failed: ${(e as Error).message}`,
+        latencyMs: Date.now() - startedAt,
+        metadata: {
+          source: 'agentpay-v2',
+          serviceId: req.serviceId,
+          serviceName: req.serviceName,
+          verdict_source: 'LLM_PARSE_ERROR',
+          error: true,
+        },
+      }).catch(() => undefined);
       return {
         verdict: 'DEFER',
         source: 'LLM_PARSE_ERROR',

@@ -76,6 +76,7 @@ All demo outputs live in `demo/`:
 - **Cryptography:** `@noble/hashes` (blake2b, sha256) + `@noble/curves` (secp256k1, ed25519)
 - **Database:** SQLite via Prisma ORM
 - **LLM:** GLM-4.6 via `z-ai-web-dev-sdk` (the SDK handles API key automatically)
+- **Observability:** PRISMtrace on BlockConvey for Treasury Agent decision traces
 - **Payment protocol:** x402 (HTTP 402 + WWW-Authenticate header)
 
 ## Quick start
@@ -110,6 +111,9 @@ CASPER_TREASURY_PUBLIC_KEY="02028689d1185c208db3f891098bb83ab3ddd79ac6512289d259
 CASPER_TREASURY_PRIVATE_KEY=""   # leave empty for decision-only mode
 DATABASE_URL="file:./db/dev.db"
 GLM_MODEL="glm-4.6"
+PRISMTRACE_API_KEY=""
+PRISMTRACE_PROJECT_ID=""
+PRISMTRACE_HOST=""
 ```
 
 ## How the LLM decision works
@@ -134,6 +138,11 @@ The LLM is instructed to return **strict JSON only**:
 ```
 
 The agent parses this, falls back to `DEFER` if the LLM output is malformed, and persists the raw LLM response alongside the structured decision for audit purposes.
+
+## PRISMtrace
+
+Set `PRISMTRACE_API_KEY` and `PRISMTRACE_PROJECT_ID` to export Treasury Agent traces.
+`PRISMTRACE_HOST` is optional and defaults to BlockConvey.
 
 ## How the on-chain payment works
 
