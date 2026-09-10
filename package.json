@@ -12,9 +12,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@langfuse/otel": "^5.11.1",
+    "@langfuse/tracing": "^5.11.1",
     "@noble/hashes": "^1.5.0",
     "@noble/curves": "^1.6.0",
     "@prisma/client": "^5.22.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
     "z-ai-web-dev-sdk": "^0.0.18"
   },
   "devDependencies": {

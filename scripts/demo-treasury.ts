@@ -14,12 +14,14 @@
 //   bun run scripts/demo-treasury.ts
 
 import { db } from '../src/lib/db';
+import { startActiveObservation } from '@langfuse/tracing';
 import { rpc } from '../src/lib/casper/rpc';
 import { computeAccountHash } from '../src/lib/casper/account-hash';
 import { motesToCspr, csprToMotes } from '../src/lib/utils/units';
 import { TreasuryAgent } from '../src/lib/treasury/agent';
 import { parseX402Challenge } from '../src/lib/x402/client';
 import { env } from '../src/lib/env';
+import { langfuseSpanProcessor } from '../src/lib/observability/langfuse';
 
 const TREASURY_PUB = env.casper.treasuryPublicKey;
 
@@ -223,78 +225,84 @@ async function printTreasuryStatus() {
 }
 
 async function runScenario(scenario: typeof DEMO_SCENARIOS[number], agent: TreasuryAgent) {
-  console.log('\n──────────────────────────────────────────────────────────────────');
-  console.log(`SCENARIO: ${scenario.label}`);
-  console.log('──────────────────────────────────────────────────────────────────');
+  await startActiveObservation('demo-treasury-scenario', async (span) => {
+    span.update({ input: { label: scenario.label, agentId: scenario.agentId, serviceId: scenario.serviceId } });
 
-  const challenge = parseX402Challenge(scenario.wwwAuth);
-  console.log(`Service:    ${challenge.requirements.description ?? '(no description)'}`);
-  console.log(`Amount:     ${motesToCspr(BigInt(challenge.requirements.amount)).toFixed(6)} CSPR`);
-  console.log(`Recipient:  ${challenge.requirements.to}`);
+    console.log('\n──────────────────────────────────────────────────────────────────');
+    console.log(`SCENARIO: ${scenario.label}`);
+    console.log('──────────────────────────────────────────────────────────────────');
 
-  const req = {
-    agentId: scenario.agentId,
-    serviceId: scenario.serviceId,
-    serviceName: challenge.requirements.description ?? scenario.serviceId,
-    requestUrl: scenario.requestUrl,
-    challenge,
-    taskContext: scenario.taskContext,
-  };
+    const challenge = parseX402Challenge(scenario.wwwAuth);
+    console.log(`Service:    ${challenge.requirements.description ?? '(no description)'}`);
+    console.log(`Amount:     ${motesToCspr(BigInt(challenge.requirements.amount)).toFixed(6)} CSPR`);
+    console.log(`Recipient:  ${challenge.requirements.to}`);
 
-  console.log('\nCalling Treasury Agent.evaluate()...');
-  const t0 = Date.now();
-  const decision = await agent.evaluate(req);
-  const dt = Date.now() - t0;
+    const req = {
+      agentId: scenario.agentId,
+      serviceId: scenario.serviceId,
+      serviceName: challenge.requirements.description ?? scenario.serviceId,
+      requestUrl: scenario.requestUrl,
+      challenge,
+      taskContext: scenario.taskContext,
+    };
 
-  console.log(`\nDECISION (${dt}ms)`);
-  console.log('==========');
-  console.log(`Verdict:           ${decision.verdict}`);
-  console.log(`Source:            ${decision.source}`);
-  console.log(`Approved amount:   ${motesToCspr(decision.approvedAmountMotes).toFixed(6)} CSPR`);
-  if (decision.counterAmountMotes) {
-    console.log(`Counter amount:    ${motesToCspr(decision.counterAmountMotes).toFixed(6)} CSPR`);
-  }
-  console.log(`Rationale:         ${decision.rationale}`);
-  if (decision.nextStep) console.log(`Next step:         ${decision.nextStep}`);
-  if (decision.llmResponse) {
-    console.log(`\nLLM raw response:`);
-    console.log(decision.llmResponse);
-  }
+    console.log('\nCalling Treasury Agent.evaluate()...');
+    const t0 = Date.now();
+    const decision = await agent.evaluate(req);
+    const dt = Date.now() - t0;
 
-  // If approved, attempt to construct (and dry-run-execute) the deploy.
-  // This exercises the full bincode serialization + deploy_hash computation.
-  if (decision.verdict === 'APPROVE') {
-    console.log('\nCONSTRUCTING ON-CHAIN PAYMENT DEPLOY');
-    console.log('=====================================');
-    const exec = await agent.executePayment(req, decision);
-    if ('error' in exec) {
-      console.log(`Error: ${exec.error}`);
-    } else if (exec.mode === 'DRY_RUN') {
-      console.log(`Mode:           DRY_RUN (no private key — not submitted)`);
-      console.log(`Deploy hash:    ${exec.deployHash}`);
-      console.log(`Body hash:      ${exec.deploy.header.body_hash}`);
-      console.log(`From (pubkey):  ${exec.deploy.header.account.slice(0, 16)}...`);
-      console.log(`Source purse:   ${exec.deploy.session.Transfer.args[1][1].parsed}`);
-      console.log(`Target purse:   ${exec.deploy.session.Transfer.args[2][1].parsed}`);
-      console.log(`Amount:         ${motesToCspr(BigInt(exec.deploy.session.Transfer.args[0][1].parsed)).toFixed(6)} CSPR`);
-      console.log(`Chain:          ${exec.deploy.header.chain_name}`);
-      console.log(`TTL:            ${exec.deploy.header.ttl}`);
-      console.log(`Timestamp:      ${exec.deploy.header.timestamp}`);
-      console.log(`Approvals:      ${exec.deploy.approvals.length} (unsigned)`);
-      console.log(`\nNote:           ${exec.note}`);
-      console.log(`\nX402 PAYMENT PROOF:`);
-      console.log(JSON.stringify(exec.proof, null, 2));
-    } else if (exec.mode === 'SUBMITTED') {
-      console.log(`Mode:           SUBMITTED`);
-      console.log(`Deploy hash:    ${exec.deployHash}`);
-      console.log(`Explorer:       https://testnet.cspr.live/deploy/${exec.deployHash}`);
-      if (exec.executionResult) {
-        console.log(`Execution:      ${JSON.stringify(exec.executionResult).slice(0, 200)}...`);
-      }
-      console.log(`\nX402 PAYMENT PROOF:`);
-      console.log(JSON.stringify(exec.proof, null, 2));
+    console.log(`\nDECISION (${dt}ms)`);
+    console.log('==========');
+    console.log(`Verdict:           ${decision.verdict}`);
+    console.log(`Source:            ${decision.source}`);
+    console.log(`Approved amount:   ${motesToCspr(decision.approvedAmountMotes).toFixed(6)} CSPR`);
+    if (decision.counterAmountMotes) {
+      console.log(`Counter amount:    ${motesToCspr(decision.counterAmountMotes).toFixed(6)} CSPR`);
     }
-  }
+    console.log(`Rationale:         ${decision.rationale}`);
+    if (decision.nextStep) console.log(`Next step:         ${decision.nextStep}`);
+    if (decision.llmResponse) {
+      console.log(`\nLLM raw response:`);
+      console.log(decision.llmResponse);
+    }
+
+    // If approved, attempt to construct (and dry-run-execute) the deploy.
+    // This exercises the full bincode serialization + deploy_hash computation.
+    if (decision.verdict === 'APPROVE') {
+      console.log('\nCONSTRUCTING ON-CHAIN PAYMENT DEPLOY');
+      console.log('=====================================');
+      const exec = await agent.executePayment(req, decision);
+      if ('error' in exec) {
+        console.log(`Error: ${exec.error}`);
+      } else if (exec.mode === 'DRY_RUN') {
+        console.log(`Mode:           DRY_RUN (no private key — not submitted)`);
+        console.log(`Deploy hash:    ${exec.deployHash}`);
+        console.log(`Body hash:      ${exec.deploy.header.body_hash}`);
+        console.log(`From (pubkey):  ${exec.deploy.header.account.slice(0, 16)}...`);
+        console.log(`Source purse:   ${exec.deploy.session.Transfer.args[1][1].parsed}`);
+        console.log(`Target purse:   ${exec.deploy.session.Transfer.args[2][1].parsed}`);
+        console.log(`Amount:         ${motesToCspr(BigInt(exec.deploy.session.Transfer.args[0][1].parsed)).toFixed(6)} CSPR`);
+        console.log(`Chain:          ${exec.deploy.header.chain_name}`);
+        console.log(`TTL:            ${exec.deploy.header.ttl}`);
+        console.log(`Timestamp:      ${exec.deploy.header.timestamp}`);
+        console.log(`Approvals:      ${exec.deploy.approvals.length} (unsigned)`);
+        console.log(`\nNote:           ${exec.note}`);
+        console.log(`\nX402 PAYMENT PROOF:`);
+        console.log(JSON.stringify(exec.proof, null, 2));
+      } else if (exec.mode === 'SUBMITTED') {
+        console.log(`Mode:           SUBMITTED`);
+        console.log(`Deploy hash:    ${exec.deployHash}`);
+        console.log(`Explorer:       https://testnet.cspr.live/deploy/${exec.deployHash}`);
+        if (exec.executionResult) {
+          console.log(`Execution:      ${JSON.stringify(exec.executionResult).slice(0, 200)}...`);
+        }
+        console.log(`\nX402 PAYMENT PROOF:`);
+        console.log(JSON.stringify(exec.proof, null, 2));
+      }
+    }
+
+    span.update({ output: { verdict: decision.verdict, source: decision.source } });
+  });
 }
 
 async function main() {
@@ -326,6 +334,7 @@ async function main() {
   }
 
   await db.$disconnect();
+  await langfuseSpanProcessor.forceFlush();
   console.log('\nDemo complete.');
 }
 

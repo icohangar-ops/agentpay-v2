@@ -17,6 +17,7 @@
 // and expects a JSON decision back.
 
 import ZAI from 'z-ai-web-dev-sdk';
+import { startActiveObservation } from '@langfuse/tracing';
 import { db } from '../db';
 import { rpc } from '../casper/rpc';
 import { computeAccountHash } from '../casper/account-hash';
@@ -170,7 +171,7 @@ export class TreasuryAgent {
       dailySpendMotes: daySpend?.amountMotes ?? 0n,
       serviceTrustScore,
       servicePolicy,
-      recentDecisions: recent.map(d => ({
+      recentDecisions: recent.map((d: { serviceName: string; decision: string; amountRequiredMotes: bigint; createdAt: Date }) => ({
         serviceName: d.serviceName,
         verdict: d.decision,
         amountMotes: d.amountRequiredMotes,
@@ -185,20 +186,25 @@ export class TreasuryAgent {
    * to the audit log regardless of outcome.
    */
   async evaluate(req: PaymentRequest): Promise<TreasuryDecision> {
-    const ctx = await this.getContext(req);
-    const amountRequired = BigInt(req.challenge.requirements.amount || '0');
+    return await startActiveObservation('treasury-evaluate', async (span) => {
+      span.update({ input: { agentId: req.agentId, serviceId: req.serviceId, serviceName: req.serviceName, requestUrl: req.requestUrl } });
+      const ctx = await this.getContext(req);
+      const amountRequired = BigInt(req.challenge.requirements.amount || '0');
 
-    // 1. Policy auto-decisions
-    const autoDecision = this.applyPolicy(req, ctx, amountRequired);
-    if (autoDecision) {
-      await this.persistDecision(req, ctx, amountRequired, autoDecision);
-      return autoDecision;
-    }
+      // 1. Policy auto-decisions
+      const autoDecision = this.applyPolicy(req, ctx, amountRequired);
+      if (autoDecision) {
+        await this.persistDecision(req, ctx, amountRequired, autoDecision);
+        span.update({ output: { verdict: autoDecision.verdict, source: autoDecision.source } });
+        return autoDecision;
+      }
 
-    // 2. LLM review
-    const llmDecision = await this.callLLM(req, ctx, amountRequired);
-    await this.persistDecision(req, ctx, amountRequired, llmDecision);
-    return llmDecision;
+      // 2. LLM review
+      const llmDecision = await this.callLLM(req, ctx, amountRequired);
+      await this.persistDecision(req, ctx, amountRequired, llmDecision);
+      span.update({ output: { verdict: llmDecision.verdict, source: llmDecision.source } });
+      return llmDecision;
+    });
   }
 
   /**
@@ -273,69 +279,76 @@ export class TreasuryAgent {
     ctx: TreasuryContext,
     amountRequired: bigint,
   ): Promise<TreasuryDecision> {
-    const systemPrompt = this.buildSystemPrompt();
-    const userPrompt = this.buildUserPrompt(req, ctx, amountRequired);
-    const startedAt = Date.now();
+    return await startActiveObservation('treasury-llm-review', async (span) => {
+      const systemPrompt = this.buildSystemPrompt();
+      const userPrompt = this.buildUserPrompt(req, ctx, amountRequired);
+      const startedAt = Date.now();
+      span.update({ input: { agentId: req.agentId, serviceId: req.serviceId, serviceName: req.serviceName, model: env.glm.model } });
 
-    let llmResponseText: string;
-    try {
-      const zai = await this.getLLM();
-      const completion = await zai.chat.completions.create({
-        messages: [
-          { role: 'assistant', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        thinking: { type: 'disabled' },
-      });
-      llmResponseText = completion.choices[0]?.message?.content ?? '';
-      await tracePrismLLM({
-        traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
-        agentId: req.agentId,
-        agentName: 'Treasury Agent',
-        model: env.glm.model,
-        inputMessages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        output: llmResponseText,
-        latencyMs: Date.now() - startedAt,
-        metadata: {
-          source: 'agentpay-v2',
-          serviceId: req.serviceId,
-          serviceName: req.serviceName,
-          verdict_source: 'LLM_REVIEW',
-        },
-      }).catch(() => undefined);
-    } catch (e) {
-      await tracePrismLLM({
-        traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
-        agentId: req.agentId,
-        agentName: 'Treasury Agent',
-        model: env.glm.model,
-        inputMessages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        output: `LLM call failed: ${(e as Error).message}`,
-        latencyMs: Date.now() - startedAt,
-        metadata: {
-          source: 'agentpay-v2',
-          serviceId: req.serviceId,
-          serviceName: req.serviceName,
-          verdict_source: 'LLM_PARSE_ERROR',
-          error: true,
-        },
-      }).catch(() => undefined);
-      return {
-        verdict: 'DEFER',
-        source: 'LLM_PARSE_ERROR',
-        approvedAmountMotes: 0n,
-        rationale: `LLM call failed: ${(e as Error).message}`,
-        nextStep: 'Retry the request or fall back to manual review.',
-      };
-    }
+      let llmResponseText: string;
+      try {
+        const zai = await this.getLLM();
+        const completion = await zai.chat.completions.create({
+          messages: [
+            { role: 'assistant', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          thinking: { type: 'disabled' },
+        });
+        llmResponseText = completion.choices[0]?.message?.content ?? '';
+        await tracePrismLLM({
+          traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
+          agentId: req.agentId,
+          agentName: 'Treasury Agent',
+          model: env.glm.model,
+          inputMessages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          output: llmResponseText,
+          latencyMs: Date.now() - startedAt,
+          metadata: {
+            source: 'agentpay-v2',
+            serviceId: req.serviceId,
+            serviceName: req.serviceName,
+            verdict_source: 'LLM_REVIEW',
+          },
+        }).catch(() => undefined);
+      } catch (e) {
+        await tracePrismLLM({
+          traceId: `${req.agentId}:${req.serviceId}:${startedAt}`,
+          agentId: req.agentId,
+          agentName: 'Treasury Agent',
+          model: env.glm.model,
+          inputMessages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          output: `LLM call failed: ${(e as Error).message}`,
+          latencyMs: Date.now() - startedAt,
+          metadata: {
+            source: 'agentpay-v2',
+            serviceId: req.serviceId,
+            serviceName: req.serviceName,
+            verdict_source: 'LLM_PARSE_ERROR',
+            error: true,
+          },
+        }).catch(() => undefined);
+        const decision = {
+          verdict: 'DEFER' as const,
+          source: 'LLM_PARSE_ERROR' as const,
+          approvedAmountMotes: 0n,
+          rationale: `LLM call failed: ${(e as Error).message}`,
+          nextStep: 'Retry the request or fall back to manual review.',
+        };
+        span.update({ output: { verdict: decision.verdict, source: decision.source } });
+        return decision;
+      }
 
-    return this.parseLLMResponse(llmResponseText, amountRequired);
+      const parsed = this.parseLLMResponse(llmResponseText, amountRequired);
+      span.update({ output: { verdict: parsed.verdict, source: parsed.source } });
+      return parsed;
+    });
   }
 
   private buildSystemPrompt(): string {

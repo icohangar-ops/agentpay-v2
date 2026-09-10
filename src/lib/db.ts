@@ -1,4 +1,5 @@
 // Prisma client singleton — single shared instance across the process.
+// @ts-ignore Prisma generates the client at install time.
 import { PrismaClient } from '@prisma/client';
 import { env } from './env';
 
