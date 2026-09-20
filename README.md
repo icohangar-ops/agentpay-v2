@@ -236,3 +236,23 @@ MIT — built for the Casper x Z.ai BUIDL hackathon.
 - **x402 protocol spec:** https://github.com/walletconnect/x402
 - **Casper docs:** https://docs.casper.network
 - **GLM-4.6:** https://z.ai
+
+## Propagation notes (wave B)
+
+- **Row 6 (dual-authority governor) — reversed.** The spend path is
+  deterministic policy plus LLM review entirely off-chain
+  (`src/lib/treasury/agent.ts`: `PaymentRequest → Policy Engine → LLM Review →
+  Decision`), and payment executes by the agent building and signing a Casper
+  transfer deploy itself (`buildTransferDeploy`) — there is no in-repository
+  on-chain policy hook or account-abstraction surface where a second,
+  contract-side authority could be installed. The row's own condition (an
+  on-chain enforcement point to pair with the off-chain governor) does not
+  hold here. Reopens if agentpay migrates to a contract-governed treasury
+  (session keys, allowlist contract, or AA wallet) that can reject at the
+  chain boundary.
+- **Row 7 (Sentinel-style circuit breaker) — reversed.** The breaker's
+  reversal condition fires: it needs a dense, rolling action stream with
+  correlated-failure structure to detect, while agentpay's action surface is
+  a single policy+LLM approval gate per payment request — far too sparse for
+  autocorrelation-based halting. Reopens if the treasury gains a high-frequency
+  autonomous action stream.
